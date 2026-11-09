@@ -1,6 +1,8 @@
 import './style.css'
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
+import Lenis from 'lenis'
+import 'lenis/dist/lenis.css'
 import { menuItems, getDietType, formatPrice } from './data/menu.js'
 import { siteConfig } from './data/site.js'
 
@@ -42,7 +44,7 @@ const whatsappUrl = (message) => {
 }
 
 const categories = [...new Set(menuItems.map((item) => item.category))]
-const cafeImages = Object.entries(import.meta.glob('./assets/images/*.{jpg,jpeg,png,webp,JPG,JPEG,PNG,WEBP}', {
+const cafeImages = Object.entries(import.meta.glob('./assets/optimized/*.jpg', {
   eager: true,
   query: '?url',
   import: 'default',
@@ -100,6 +102,12 @@ const renderMenuItem = (item) => {
 }
 
 document.querySelector('#app').innerHTML = `
+  <div class="ambient-field" aria-hidden="true">
+    <span class="ambient-orb ambient-orb--one"></span>
+    <span class="ambient-orb ambient-orb--two"></span>
+    <span class="ambient-frame ambient-frame--one"></span>
+    <span class="ambient-frame ambient-frame--two"></span>
+  </div>
   <div class="site-shell">
     <header class="site-nav">
       <a class="brand" href="#home" aria-label="Fayra home">
@@ -127,7 +135,7 @@ document.querySelector('#app').innerHTML = `
             <a class="text-link" href="#story">Step inside ${icon('arrow')}</a>
           </div>
         </div>
-        <div class="hero__visual" aria-label="Photos of Fayra Lounge and Cafe">
+        <div class="hero__visual" aria-label="Photos of Fayra Lounge and Cafe" data-cursor="DISCOVER">
         <div class="hero-photo hero-photo--main" data-depth="0.11">
           <img class="w-full h-full object-cover" src="${mainCafeImage.src}" alt="Photo of Fayra Lounge and Cafe in Lucknow" fetchpriority="high">
           <span class="photo-caption">A little corner of Lucknow <i>FAYRA / 01</i></span>
@@ -150,12 +158,14 @@ document.querySelector('#app').innerHTML = `
           <p>Come as the light softens. Settle into a familiar corner, discover a new favourite, and let the conversation take its time. From the first pour to the last shared bite, every detail is here to make the everyday feel a little more special.</p>
           <a class="text-link" href="#menu">Find your favourite ${icon('arrow')}</a>
         </div>
-        <div class="story-gallery${storyImages.length === 1 ? ' story-gallery--single' : storyImages.length === 2 ? ' story-gallery--pair' : storyImages.length === 3 ? ' story-gallery--few' : ' story-gallery--many'}">
-          ${storyImages.map((image, index) => `
-            <figure class="story-gallery__item">
-              <img class="w-full h-full object-cover" src="${image.src}" alt="Photo from Fayra Lounge and Cafe" loading="lazy">
-              <figcaption>FAYRA / ${String(index + heroImages.length + 1).padStart(2, '0')}</figcaption>
-            </figure>`).join('')}
+        <div class="story-gallery-viewport">
+          <div class="story-gallery${storyImages.length === 1 ? ' story-gallery--single' : storyImages.length === 2 ? ' story-gallery--pair' : storyImages.length === 3 ? ' story-gallery--few' : ' story-gallery--many'}">
+            ${storyImages.map((image, index) => `
+              <figure class="story-gallery__item">
+                <img class="w-full h-full object-cover" src="${image.src}" alt="Photo from Fayra Lounge and Cafe" loading="lazy">
+                <figcaption>FAYRA / ${String(index + heroImages.length + 1).padStart(2, '0')}</figcaption>
+              </figure>`).join('')}
+          </div>
         </div>
         <div class="story__coordinates"><span>01</span><span>MAKE YOURSELF AT HOME</span><span>FAYRA — EVENINGS, REIMAGINED</span></div>
       </section>
@@ -180,7 +190,7 @@ document.querySelector('#app').innerHTML = `
           ${categories.map((category, index) => {
             const count = menuItems.filter((item) => item.category === category).length
             return `
-              <details class="menu-category" data-category="${category}">
+              <details class="menu-category" data-category="${category}" data-cursor="CRAVE">
                 <summary class="menu-category__summary" aria-controls="menu-category-${index}">
                   <span class="menu-category__visual">${renderCategoryVisual(category)}</span>
                   <span class="menu-category__copy">
@@ -234,6 +244,46 @@ document.querySelector('#app').innerHTML = `
     </footer>
   </div>
 `
+
+document.body.insertAdjacentHTML('beforeend', `
+  <div class="custom-cursor" aria-hidden="true">
+    <span class="custom-cursor__dot"></span>
+    <span class="custom-cursor__ring"><span class="custom-cursor__label"></span></span>
+  </div>
+`)
+
+const cursor = document.querySelector('.custom-cursor')
+if (window.matchMedia('(pointer: fine) and (prefers-reduced-motion: no-preference)').matches) {
+  const moveX = gsap.quickTo(cursor, 'x', { duration: 0.18, ease: 'power3.out' })
+  const moveY = gsap.quickTo(cursor, 'y', { duration: 0.18, ease: 'power3.out' })
+  const cursorLabel = cursor.querySelector('.custom-cursor__label')
+
+  window.addEventListener('pointermove', (event) => {
+    moveX(event.clientX)
+    moveY(event.clientY)
+    cursor.classList.add('is-visible')
+  }, { passive: true })
+
+  document.querySelectorAll('[data-cursor]').forEach((target) => {
+    target.addEventListener('pointerenter', () => {
+      cursorLabel.textContent = target.dataset.cursor
+      cursor.classList.add('is-active')
+    })
+    target.addEventListener('pointerleave', () => cursor.classList.remove('is-active'))
+  })
+
+  const ambientPosition = { x: 0, y: 0 }
+  const setAmbientX = () => document.documentElement.style.setProperty('--pointer-x', `${ambientPosition.x}px`)
+  const setAmbientY = () => document.documentElement.style.setProperty('--pointer-y', `${ambientPosition.y}px`)
+  const ambientX = gsap.quickTo(ambientPosition, 'x', { duration: 0.7, ease: 'power2.out', onUpdate: setAmbientX })
+  const ambientY = gsap.quickTo(ambientPosition, 'y', { duration: 0.7, ease: 'power2.out', onUpdate: setAmbientY })
+  window.addEventListener('pointermove', (event) => {
+    ambientX(event.clientX)
+    ambientY(event.clientY)
+  }, { passive: true })
+} else {
+  cursor.remove()
+}
 
 const menuCategories = [...document.querySelectorAll('.menu-category')]
 const menuSearch = document.querySelector('#menu-search')
@@ -305,6 +355,13 @@ document.querySelectorAll('.nav-links a').forEach((link) => {
 
 const motion = gsap.matchMedia()
 motion.add('(prefers-reduced-motion: no-preference)', () => {
+  const lenis = new Lenis({ autoRaf: false, smoothWheel: true, lerp: 0.085 })
+  const updateScroll = () => ScrollTrigger.update()
+  const advanceScroll = (time) => lenis.raf(time * 1000)
+  lenis.on('scroll', updateScroll)
+  gsap.ticker.add(advanceScroll)
+  gsap.ticker.lagSmoothing(0)
+
   gsap.from('.hero__copy > *', { y: 28, opacity: 0, duration: 0.9, stagger: 0.12, ease: 'power3.out', delay: 0.1 })
   gsap.utils.toArray('[data-depth]').forEach((image) => {
     const depth = Number(image.dataset.depth)
@@ -323,9 +380,53 @@ motion.add('(prefers-reduced-motion: no-preference)', () => {
       scrollTrigger: { trigger: element, start: 'top 88%', once: true },
     })
   })
-  gsap.from('.story-gallery img', {
-    scale: 1.08,
+  if (window.matchMedia('(min-width: 901px)').matches) {
+    gsap.from('.story-gallery img', {
+      scale: 1.08,
+      ease: 'none',
+      scrollTrigger: { trigger: '.story-gallery-viewport', start: 'top bottom', end: 'bottom top', scrub: true },
+    })
+
+    gsap.utils.toArray('.story-gallery').forEach((gallery) => {
+      const viewport = gallery.parentElement
+      const overflow = gallery.scrollWidth - viewport.clientWidth
+      if (overflow <= 0) return
+      gsap.to(gallery, {
+        x: -overflow,
+        ease: 'none',
+        scrollTrigger: {
+          trigger: viewport,
+          start: 'top bottom',
+          end: 'bottom top',
+          scrub: 1,
+          invalidateOnRefresh: true,
+        },
+      })
+    })
+
+    gsap.timeline({
+      scrollTrigger: {
+        trigger: '.hero',
+        start: 'top top',
+        end: '+=72%',
+        scrub: 1,
+        pin: true,
+        anticipatePin: 1,
+        invalidateOnRefresh: true,
+      },
+    })
+      .to('.hero__copy, .hero__visual, .hero__meta', { scale: 0.94, opacity: 0.12, filter: 'blur(8px)', ease: 'none' })
+  }
+
+  gsap.fromTo('.story', { clipPath: 'inset(10% 0 0 0)' }, {
+    clipPath: 'inset(0% 0 0 0)',
     ease: 'none',
-    scrollTrigger: { trigger: '.story-gallery', start: 'top bottom', end: 'bottom top', scrub: true },
+    scrollTrigger: { trigger: '.story', start: 'top 90%', end: 'top 30%', scrub: 1 },
   })
+
+  return () => {
+    lenis.off('scroll', updateScroll)
+    gsap.ticker.remove(advanceScroll)
+    lenis.destroy()
+  }
 })

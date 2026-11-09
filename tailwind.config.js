@@ -5,9 +5,9 @@ export default {
     extend: {
       colors: {
         fayra: {
-          paper: '#f5f3ed',
-          green: '#203d32',
-          gold: '#b89357',
+          paper: '#090d0c',
+          green: '#c9ab73',
+          gold: '#d3b46f',
         },
       },
       fontFamily: {
