@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 560 140" role="img" aria-labelledby="title">
+  <title id="title">Fayra Lounge and Cafe</title>
+  <rect x="4" y="4" width="132" height="132" fill="none" stroke="#b89357" stroke-width="2"/>
+  <path d="M22 22h96M22 118h96" fill="none" stroke="#b89357" stroke-width="1" opacity=".58"/>
+  <text x="70" y="103" fill="#203d32" font-family="Georgia,serif" font-size="94" font-style="italic" text-anchor="middle">F</text>
+  <text x="164" y="82" fill="#203d32" font-family="Georgia,serif" font-size="65" letter-spacing="10">FAYRA</text>
+  <path d="M166 101h104" fill="none" stroke="#b89357" stroke-width="1.5"/>
+  <text x="282" y="106" fill="#777a70" font-family="Arial,sans-serif" font-size="12" letter-spacing="5">LOUNGE &amp; CAFE</text>
+</svg>
