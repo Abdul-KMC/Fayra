@@ -123,22 +123,28 @@ h1, h2, h3, p { margin-top: 0; }
 .legend-dot--veg { border-color: #456a47; border-radius: 50%; background: #456a47; }
 .legend-dot--nonveg { border-color: #a45b4b; background: #a45b4b; }
 .legend-dot--mixed { border-color: #7d6847; background: linear-gradient(90deg, #456a47 50%, #a45b4b 50%); }
-.menu-accordion { border-bottom: 1px solid var(--line); }
-.menu-category { border-bottom: 1px solid var(--line); }
-.menu-category:last-of-type { border-bottom: 0; }
-.menu-category__summary { display: flex; min-height: 67px; align-items: center; gap: 16px; padding: 13px 6px; list-style: none; cursor: pointer; }
+.menu-accordion { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); align-items: start; gap: 13px; }
+.menu-category { min-width: 0; overflow: hidden; border: 1px solid rgba(36,42,36,.12); background: rgba(255,255,255,.35); transition: border-color .25s ease, box-shadow .25s ease, background .25s ease; }
+.menu-category:hover, .menu-category[open] { border-color: rgba(184,147,87,.66); background: rgba(255,255,255,.58); box-shadow: 0 10px 24px rgba(32,45,34,.055); }
+.menu-category__summary { position: relative; display: flex; min-height: 112px; align-items: center; gap: 13px; padding: 15px; list-style: none; cursor: pointer; }
 .menu-category__summary::-webkit-details-marker { display: none; }
 .menu-category__summary::marker { content: ""; }
 .menu-category__summary:focus-visible { outline: 1px solid var(--gold); outline-offset: -2px; }
-.menu-category__name { color: var(--green); font: 500 23px/1.1 var(--serif); transition: color .2s; }
+.menu-category__visual { display: grid; width: 76px; height: 76px; flex: 0 0 auto; overflow: hidden; place-items: center; color: var(--green); background: linear-gradient(145deg, #e8e2d3, #f3efe6); }
+.menu-category__icon { display: grid; width: 44px; height: 44px; place-items: center; border: 1px solid rgba(184,147,87,.7); border-radius: 50%; color: var(--green); }
+.menu-category__icon svg { width: 22px; height: 22px; }
+.menu-category__photo { width: 100%; height: 100%; object-fit: cover; transition: transform .45s ease; }
+.menu-category:hover .menu-category__photo { transform: scale(1.06); }
+.menu-category__copy { display: flex; min-width: 0; flex: 1; flex-direction: column; gap: 8px; }
+.menu-category__name { color: var(--green); font: 500 21px/1.05 var(--serif); transition: color .2s; }
 .menu-category__summary:hover .menu-category__name, .menu-category[open] .menu-category__name { color: #987542; }
-.menu-category__count { margin-left: auto; color: #888a80; font-size: 9px; letter-spacing: .04em; }
-.menu-category__icon { display: grid; width: 28px; height: 28px; flex: 0 0 auto; place-items: center; border: 1px solid var(--line); color: var(--gold); transition: transform .25s ease, background .25s; }
-.menu-category__icon svg { width: 13px; height: 13px; transform: rotate(135deg); transition: transform .25s ease; }
-.menu-category[open] .menu-category__icon { background: rgba(184,147,87,.1); }
-.menu-category[open] .menu-category__icon svg { transform: rotate(225deg); }
-.menu-category__panel { padding: 0 6px 19px; }
-.menu-grid { display: grid; grid-template-columns: repeat(2, 1fr); column-gap: 8%; }
+.menu-category__count { color: #888a80; font-size: 9px; letter-spacing: .04em; }
+.menu-category__expand { display: grid; width: 27px; height: 27px; flex: 0 0 auto; place-items: center; border: 1px solid var(--line); color: var(--gold); transition: transform .25s ease, background .25s; }
+.menu-category__expand svg { width: 13px; height: 13px; transform: rotate(135deg); transition: transform .25s ease; }
+.menu-category[open] .menu-category__expand { background: rgba(184,147,87,.1); }
+.menu-category[open] .menu-category__expand svg { transform: rotate(225deg); }
+.menu-category__panel { padding: 0 15px 15px; border-top: 1px solid rgba(36,42,36,.09); }
+.menu-grid { display: grid; grid-template-columns: 1fr; }
 .menu-item { min-height: 105px; padding: 17px 0 14px; border-bottom: 1px solid var(--line); }
 .menu-item__topline { display: flex; align-items: center; gap: 9px; color: #888a80; font-size: 9px; letter-spacing: .04em; }
 .diet-mark { display: grid; width: 15px; height: 15px; place-items: center; border: 1px solid currentColor; }
@@ -154,6 +160,7 @@ h1, h2, h3, p { margin-top: 0; }
 .menu-note { margin: 25px 0 0; color: #8b8b82; font-size: 10px; }
 .menu-empty { grid-column: 1 / -1; margin: 0; padding: 36px 0; color: #777a70; font: 20px var(--serif); text-align: center; }
 .menu-empty[hidden], .menu-category[hidden] { display: none; }
+.menu-empty:not([hidden]) { display: block; grid-column: 1 / -1; border: 1px solid var(--line); }
 
 .reservation { position: relative; display: flex; flex-direction: column; align-items: center; min-height: 790px; padding-top: 120px; padding-bottom: 105px; overflow: hidden; color: var(--paper); background: var(--green); text-align: center; }
 .reservation .eyebrow { color: #c6c6b8; }
@@ -224,6 +231,7 @@ h1, h2, h3, p { margin-top: 0; }
   .hero__bottom { flex-direction: column; align-items: start; gap: 17px; }
   .story { column-gap: 7%; }
   .menu-toolbar { align-items: start; flex-direction: column; }
+  .menu-accordion { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .footer__main { grid-template-columns: .7fr 1.3fr; gap: 40px 7%; }
   .footer__map { grid-column: 1 / -1; min-height: 180px; }
   .footer__map iframe { height: 170px; }
@@ -278,10 +286,13 @@ h1, h2, h3, p { margin-top: 0; }
   .menu-browse-hint { max-width: 250px; line-height: 1.5; }
   .diet-legend { font-size: 8px; }
   .menu-grid { grid-template-columns: 1fr; }
-  .menu-category__summary { min-height: 62px; gap: 10px; padding: 12px 2px; }
-  .menu-category__name { font-size: 21px; }
+  .menu-accordion { grid-template-columns: 1fr; gap: 9px; }
+  .menu-category__summary { min-height: 91px; gap: 12px; padding: 11px; }
+  .menu-category__visual { width: 66px; height: 66px; }
+  .menu-category__icon { width: 40px; height: 40px; }
+  .menu-category__name { font-size: 20px; }
   .menu-category__count { font-size: 8px; }
-  .menu-category__panel { padding: 0 2px 12px; }
+  .menu-category__panel { padding: 0 11px 11px; }
   .menu-item { min-height: 88px; padding: 14px 0 12px; }
   .menu-item h3 { font-size: 20px; }
   .reservation { min-height: auto; padding-top: 90px; padding-bottom: 75px; }

@@ -16,6 +16,22 @@ const icon = (name, className = '') => {
     instagram: '<rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><path d="M17.5 6.5h.01"/>',
     leaf: '<path d="M20 4c-9 0-15 4-15 11a5 5 0 0 0 5 5c7 0 11-6 10-16Z"/><path d="M4 21c2-5 6-8 11-11"/>',
     dot: '<circle cx="12" cy="12" r="8" fill="currentColor" stroke="none"/>',
+    star: '<path d="m12 3 2.5 5.2 5.7.8-4.1 4 .97 5.7L12 16l-5.07 2.7.97-5.7-4.1-4 5.7-.8L12 3Z"/>',
+    bowl: '<path d="M3 12h18l-2 7H5l-2-7Z"/><path d="M5 9c1.2-1.6 2.2-1.6 3.4 0 1.2-1.6 2.2-1.6 3.4 0 1.2-1.6 2.2-1.6 3.4 0 1.2-1.6 2.2-1.6 3.4 0"/><path d="M8 22h8"/>',
+    cake: '<path d="M4 12h16v9H4z"/><path d="M4 16c2 2 4-2 6 0s4-2 6 0 4-2 4 0"/><path d="M8 12V8m4 4V6m4 6V8"/>',
+    grill: '<path d="M4 12h16l-2 7H6l-2-7Z"/><path d="M7 12V7m5 5V5m5 7V7M8 19v3m8-3v3"/>',
+    pizza: '<path d="m4 4 16 4-9 13L4 4Z"/><path d="m4 4 16 4"/><circle cx="10" cy="10" r="1"/><circle cx="13" cy="15" r="1"/>',
+    noodles: '<path d="M4 12h16l-2 7H6l-2-7Z"/><path d="M7 10c-2-2 2-3 0-5m5 5c-2-2 2-3 0-5m5 5c-2-2 2-3 0-5"/><path d="M8 22h8"/>',
+    platter: '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><path d="M12 3v2m9 7h-2M12 21v-2m-9-7h2"/>',
+    dumpling: '<path d="M4 13c0-5 3.6-9 8-9s8 4 8 9v1H4v-1Z"/><path d="M4 14c1.3 4 4 6 8 6s6.7-2 8-6M8 12l1-3m3 3V7m3 5-1-3"/>',
+    burger: '<path d="M4 10a8 8 0 0 1 16 0H4Z"/><path d="M3 12h18v3H3zm2 5h14l-2 4H7l-2-4Z"/><path d="M8 7h.01m4-2h.01m4 2h.01"/>',
+    sandwich: '<path d="m4 9 8-5 8 5-8 5-8-5Z"/><path d="m4 9v6l8 5 8-5V9"/><path d="m4 15 8-5 8 5"/>',
+    coffee: '<path d="M5 8h12v9a4 4 0 0 1-4 4H9a4 4 0 0 1-4-4V8Z"/><path d="M17 10h1a3 3 0 0 1 0 6h-1M8 4c-1 1 1 1 0 3m4-3c-1 1 1 1 0 3"/>',
+    drink: '<path d="M5 4h14l-2 17H7L5 4Z"/><path d="M6 9h12m-9 3h.01m3 2h.01"/><path d="m14 4 3-3"/>',
+    leafPlate: '<path d="M4 20c0-9 7-15 16-16 0 9-6 16-16 16Z"/><path d="M4 20c3-5 7-8 12-11"/>',
+    pasta: '<path d="M4 13h16l-2 7H6l-2-7Z"/><path d="M8 11c0-3 2-3 2-6m3 6c0-3 2-3 2-6m2 6c0-3 2-3 2-6"/><path d="M8 23h8"/>',
+    bread: '<path d="M4 11a4 4 0 0 1 4-4 4 4 0 0 1 8 0 4 4 0 0 1 4 4v7H4v-7Z"/><path d="M8 11v3m4-4v4m4-3v3"/>',
+    glass: '<path d="M6 3h12l-1 18H7L6 3Z"/><path d="M7 9h10m-7 4h.01m3 2h.01"/>',
   }
   return `<svg class="${className}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${paths[name] ?? ''}</svg>`
 }
@@ -39,6 +55,32 @@ const mainCafeImage = imageByName('Fayra_main') ?? cafeImages[0]
 const heroImages = [mainCafeImage, imageByName('Fayra1'), imageByName('Fayra2')].filter(Boolean)
 const storyImages = cafeImages.filter((image) => !heroImages.includes(image))
 if (storyImages.length === 0) storyImages.push(mainCafeImage)
+
+const getCategoryIcon = (category) => {
+  if (/combo/i.test(category)) return 'star'
+  if (/dessert/i.test(category)) return 'cake'
+  if (/tandoor/i.test(category)) return 'grill'
+  if (/pizza/i.test(category)) return 'pizza'
+  if (/momo/i.test(category)) return 'dumpling'
+  if (/burger/i.test(category)) return 'burger'
+  if (/panini|sandwich|wrap|roll|quesadilla/i.test(category)) return 'sandwich'
+  if (/coffee|tea|shake/i.test(category)) return 'coffee'
+  if (/juice|drink|refresher|smoothie/i.test(category)) return 'drink'
+  if (/salad/i.test(category)) return 'leafPlate'
+  if (/bread|rice|biryani/i.test(category)) return 'bread'
+  if (/pasta|lasagna|maggi/i.test(category)) return 'pasta'
+  if (/starter|platter|sizzler/i.test(category)) return 'platter'
+  if (/soup|chinese|main course/i.test(category)) return 'bowl'
+  return 'sandwich'
+}
+
+const renderCategoryVisual = (category) => {
+  if (/^momos$/i.test(category)) {
+    const momosImage = imageByName('Fayra_momos')
+    if (momosImage) return `<img class="menu-category__photo" src="${momosImage.src}" alt="" loading="lazy">`
+  }
+  return `<span class="menu-category__icon">${icon(getCategoryIcon(category))}</span>`
+}
 
 const renderMenuItem = (item) => {
   const diet = getDietType(item)
@@ -140,9 +182,12 @@ document.querySelector('#app').innerHTML = `
             return `
               <details class="menu-category" data-category="${category}">
                 <summary class="menu-category__summary" aria-controls="menu-category-${index}">
+                  <span class="menu-category__visual">${renderCategoryVisual(category)}</span>
+                  <span class="menu-category__copy">
                   <span class="menu-category__name">${category}</span>
                   <span class="menu-category__count">${count} ${count === 1 ? 'dish' : 'dishes'}</span>
-                  <span class="menu-category__icon" aria-hidden="true">${icon('arrowUp')}</span>
+                  </span>
+                  <span class="menu-category__expand" aria-hidden="true">${icon('arrowUp')}</span>
                 </summary>
                 <div class="menu-category__panel" id="menu-category-${index}">
                   <div class="menu-grid"></div>
