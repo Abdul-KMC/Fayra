@@ -285,6 +285,107 @@ if (window.matchMedia('(pointer: fine) and (prefers-reduced-motion: no-preferenc
   cursor.remove()
 }
 
+const createFireflies = () => {
+  const canvas = document.createElement('canvas')
+  canvas.className = 'fireflies'
+  canvas.setAttribute('aria-hidden', 'true')
+  document.body.prepend(canvas)
+  const context = canvas.getContext('2d')
+  if (!context) {
+    canvas.remove()
+    return () => {}
+  }
+
+  const pointer = { x: -1000, y: -1000 }
+  const particles = []
+  let width = 0
+  let height = 0
+  let frame = 0
+  let previousScroll = window.scrollY
+  let scrollDrift = 0
+  let lastTime = 0
+
+  const resize = () => {
+    const ratio = Math.min(window.devicePixelRatio || 1, 1.5)
+    width = window.innerWidth
+    height = window.innerHeight
+    canvas.width = Math.round(width * ratio)
+    canvas.height = Math.round(height * ratio)
+    context.setTransform(ratio, 0, 0, ratio, 0, 0)
+    const count = Math.min(88, Math.max(28, Math.round(width * height / 10500)))
+    particles.length = 0
+    for (let index = 0; index < count; index += 1) {
+      particles.push({
+        x: Math.random() * width,
+        y: Math.random() * height,
+        radius: 0.7 + Math.random() * 1.8,
+        phase: Math.random() * Math.PI * 2,
+        speed: 0.15 + Math.random() * 0.45,
+        drift: (Math.random() - 0.5) * 0.35,
+      })
+    }
+  }
+
+  const movePointer = (event) => {
+    pointer.x = event.clientX
+    pointer.y = event.clientY
+  }
+  const updateScroll = () => {
+    const currentScroll = window.scrollY
+    scrollDrift = gsap.utils.clamp(-5, 5, scrollDrift + (currentScroll - previousScroll) * 0.025)
+    previousScroll = currentScroll
+  }
+
+  const draw = (time) => {
+    const delta = Math.min((time - lastTime) / 16.67 || 1, 2)
+    lastTime = time
+    scrollDrift *= 0.94
+    context.clearRect(0, 0, width, height)
+
+    particles.forEach((particle) => {
+      const dx = particle.x - pointer.x
+      const dy = particle.y - pointer.y
+      const distance = Math.hypot(dx, dy)
+      if (distance < 110 && distance > 0) {
+        const force = (110 - distance) / 110
+        particle.x += (dx / distance) * force * 2.2 * delta
+        particle.y += (dy / distance) * force * 2.2 * delta
+      }
+
+      particle.x += particle.drift * delta
+      particle.y += (particle.speed - scrollDrift * 0.12) * delta
+      if (particle.x < -8) particle.x = width + 8
+      if (particle.x > width + 8) particle.x = -8
+      if (particle.y < -8) particle.y = height + 8
+      if (particle.y > height + 8) particle.y = -8
+
+      const shimmer = 0.24 + (Math.sin(time * 0.0012 + particle.phase) + 1) * 0.27
+      context.beginPath()
+      context.fillStyle = `rgba(244, 211, 142, ${shimmer})`
+      context.shadowColor = 'rgba(238, 195, 105, .68)'
+      context.shadowBlur = particle.radius * 5
+      context.arc(particle.x, particle.y, particle.radius, 0, Math.PI * 2)
+      context.fill()
+    })
+    context.shadowBlur = 0
+    frame = window.requestAnimationFrame(draw)
+  }
+
+  resize()
+  frame = window.requestAnimationFrame(draw)
+  window.addEventListener('resize', resize, { passive: true })
+  window.addEventListener('pointermove', movePointer, { passive: true })
+  window.addEventListener('scroll', updateScroll, { passive: true })
+
+  return () => {
+    window.cancelAnimationFrame(frame)
+    window.removeEventListener('resize', resize)
+    window.removeEventListener('pointermove', movePointer)
+    window.removeEventListener('scroll', updateScroll)
+    canvas.remove()
+  }
+}
+
 const menuCategories = [...document.querySelectorAll('.menu-category')]
 const menuSearch = document.querySelector('#menu-search')
 const menuResults = document.querySelector('#menu-results')
@@ -358,6 +459,7 @@ motion.add('(prefers-reduced-motion: no-preference)', () => {
   const lenis = new Lenis({ autoRaf: false, smoothWheel: true, lerp: 0.085 })
   const updateScroll = () => ScrollTrigger.update()
   const advanceScroll = (time) => lenis.raf(time * 1000)
+  const destroyFireflies = createFireflies()
   lenis.on('scroll', updateScroll)
   gsap.ticker.add(advanceScroll)
   gsap.ticker.lagSmoothing(0)
@@ -386,70 +488,70 @@ motion.add('(prefers-reduced-motion: no-preference)', () => {
     mobile: '(max-width: 900px)',
   }, (context) => {
     const { desktop } = context.conditions
-    const galleryStagger = desktop ? 0.34 : 0.62
     const galleryCards = gsap.utils.toArray('.story-gallery__item')
+    const galleryViewport = document.querySelector('.story-gallery-viewport')
+    const startProgress = Math.min(1, Math.max(0, galleryCards.length - 1))
+    const endProgress = Math.max(startProgress, galleryCards.length - 1)
+    const galleryProgress = { value: startProgress }
 
     document.querySelectorAll('.story-gallery-viewport').forEach((viewport) => {
       viewport.classList.add('is-cinematic')
     })
-    gsap.set(galleryCards, { autoAlpha: 0 })
+    const updateGallery = (fadeCopy = false) => {
+      const stageHeight = galleryViewport.clientHeight
+      const slot = stageHeight * 0.36
+      const xOffset = galleryViewport.clientWidth * (desktop ? 0.075 : 0.035)
 
-    const galleryTimeline = gsap.timeline({
+      if (desktop && fadeCopy) {
+        const copyOpacity = 1 - gsap.utils.clamp(0, 1, Math.abs(galleryProgress.value - 1) / 0.12)
+        gsap.set('.story__intro, .story__body', { autoAlpha: copyOpacity })
+      }
+
+      galleryCards.forEach((card, index) => {
+        const position = index - galleryProgress.value
+        const distance = Math.abs(position)
+        const rotationY = distance <= 0.48
+          ? 0
+          : distance <= 0.7
+            ? ((distance - 0.48) / 0.22) * 60
+            : distance <= 1
+              ? 60 + ((distance - 0.7) / 0.3) * 120
+              : 180
+        const opacity = 1 - gsap.utils.clamp(0, 1, (distance - 1.08) / 0.52)
+        gsap.set(card, {
+          x: -Math.sin(position * Math.PI / 2) * xOffset,
+          y: gsap.utils.clamp(-stageHeight * 0.42, stageHeight * 0.42, position * slot),
+          rotationY: Math.min(rotationY, 180),
+          rotationZ: -position * 2.2,
+          scale: 1 - Math.min(distance, 1) * 0.025,
+          autoAlpha: opacity,
+          zIndex: Math.round(20 - distance * 10),
+          transformPerspective: 1100,
+          transformOrigin: '50% 50%',
+        })
+      })
+    }
+
+    updateGallery()
+    const galleryTween = gsap.to(galleryProgress, {
+      value: endProgress,
+      ease: 'none',
+      onUpdate: () => updateGallery(true),
       scrollTrigger: {
-        trigger: '.story-gallery-viewport',
-        start: 'top 16%',
-        end: () => `+=${Math.max(420, window.innerHeight * 0.62) * (1 + galleryStagger * Math.max(galleryCards.length - 1, 0))}`,
-        scrub: 0.8,
-        pin: '.story-gallery-viewport',
+        trigger: galleryViewport,
+        start: 'top 10%',
+        end: () => `+=${Math.max(420, window.innerHeight * 0.56) * Math.max(1, endProgress - startProgress)}`,
+        scrub: 0.7,
+        pin: galleryViewport,
         pinSpacing: true,
         anticipatePin: 1,
         invalidateOnRefresh: true,
       },
     })
 
-    galleryCards.forEach((card, index) => {
-      const direction = index % 2 === 0 ? 1 : -1
-      const cardStart = index * galleryStagger
-      const offsetX = () => Math.min(window.innerWidth * (desktop ? 0.2 : 0.13), desktop ? 210 : 48)
-      const offsetY = () => Math.max(420, window.innerHeight * 0.72)
-
-      galleryTimeline
-        .fromTo(card, {
-          y: offsetY,
-          x: () => direction * offsetX(),
-          rotation: direction * 11,
-          scale: 0.82,
-          autoAlpha: 0,
-        }, {
-          y: () => offsetY() * 0.16,
-          x: () => direction * offsetX() * 0.45,
-          rotation: direction * 4,
-          scale: 1,
-          autoAlpha: 1,
-          duration: 0.3,
-          ease: 'none',
-        }, cardStart)
-        .to(card, {
-          y: () => -offsetY() * 0.16,
-          x: () => -direction * offsetX() * 0.45,
-          rotation: -direction * 4,
-          duration: 0.4,
-          ease: 'none',
-        }, cardStart + 0.3)
-        .to(card, {
-          y: () => -offsetY(),
-          x: () => -direction * offsetX(),
-          rotation: -direction * 11,
-          scale: 0.84,
-          autoAlpha: 0,
-          duration: 0.3,
-          ease: 'none',
-        }, cardStart + 0.7)
-    })
-
     return () => {
-      galleryTimeline.scrollTrigger?.kill()
-      galleryTimeline.kill()
+      galleryTween.scrollTrigger?.kill()
+      galleryTween.kill()
       document.querySelectorAll('.story-gallery-viewport').forEach((viewport) => {
         viewport.classList.remove('is-cinematic')
       })
@@ -482,5 +584,6 @@ motion.add('(prefers-reduced-motion: no-preference)', () => {
     lenis.off('scroll', updateScroll)
     gsap.ticker.remove(advanceScroll)
     lenis.destroy()
+    destroyFireflies()
   }
 })
