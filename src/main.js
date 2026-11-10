@@ -380,30 +380,83 @@ motion.add('(prefers-reduced-motion: no-preference)', () => {
       scrollTrigger: { trigger: element, start: 'top 88%', once: true },
     })
   })
-  if (window.matchMedia('(min-width: 901px)').matches) {
-    gsap.from('.story-gallery img', {
-      scale: 1.08,
-      ease: 'none',
-      scrollTrigger: { trigger: '.story-gallery-viewport', start: 'top bottom', end: 'bottom top', scrub: true },
+  const galleryBreakpoints = gsap.matchMedia()
+  galleryBreakpoints.add({
+    desktop: '(min-width: 901px)',
+    mobile: '(max-width: 900px)',
+  }, (context) => {
+    const { desktop } = context.conditions
+    const galleryStagger = desktop ? 0.34 : 0.62
+    const galleryCards = gsap.utils.toArray('.story-gallery__item')
+
+    document.querySelectorAll('.story-gallery-viewport').forEach((viewport) => {
+      viewport.classList.add('is-cinematic')
+    })
+    gsap.set(galleryCards, { autoAlpha: 0 })
+
+    const galleryTimeline = gsap.timeline({
+      scrollTrigger: {
+        trigger: '.story-gallery-viewport',
+        start: 'top 16%',
+        end: () => `+=${Math.max(420, window.innerHeight * 0.62) * (1 + galleryStagger * Math.max(galleryCards.length - 1, 0))}`,
+        scrub: 0.8,
+        pin: '.story-gallery-viewport',
+        pinSpacing: true,
+        anticipatePin: 1,
+        invalidateOnRefresh: true,
+      },
     })
 
-    gsap.utils.toArray('.story-gallery').forEach((gallery) => {
-      const viewport = gallery.parentElement
-      const overflow = gallery.scrollWidth - viewport.clientWidth
-      if (overflow <= 0) return
-      gsap.to(gallery, {
-        x: -overflow,
-        ease: 'none',
-        scrollTrigger: {
-          trigger: viewport,
-          start: 'top bottom',
-          end: 'bottom top',
-          scrub: 1,
-          invalidateOnRefresh: true,
-        },
+    galleryCards.forEach((card, index) => {
+      const direction = index % 2 === 0 ? 1 : -1
+      const cardStart = index * galleryStagger
+      const offsetX = () => Math.min(window.innerWidth * (desktop ? 0.2 : 0.13), desktop ? 210 : 48)
+      const offsetY = () => Math.max(420, window.innerHeight * 0.72)
+
+      galleryTimeline
+        .fromTo(card, {
+          y: offsetY,
+          x: () => direction * offsetX(),
+          rotation: direction * 11,
+          scale: 0.82,
+          autoAlpha: 0,
+        }, {
+          y: () => offsetY() * 0.16,
+          x: () => direction * offsetX() * 0.45,
+          rotation: direction * 4,
+          scale: 1,
+          autoAlpha: 1,
+          duration: 0.3,
+          ease: 'none',
+        }, cardStart)
+        .to(card, {
+          y: () => -offsetY() * 0.16,
+          x: () => -direction * offsetX() * 0.45,
+          rotation: -direction * 4,
+          duration: 0.4,
+          ease: 'none',
+        }, cardStart + 0.3)
+        .to(card, {
+          y: () => -offsetY(),
+          x: () => -direction * offsetX(),
+          rotation: -direction * 11,
+          scale: 0.84,
+          autoAlpha: 0,
+          duration: 0.3,
+          ease: 'none',
+        }, cardStart + 0.7)
+    })
+
+    return () => {
+      galleryTimeline.scrollTrigger?.kill()
+      galleryTimeline.kill()
+      document.querySelectorAll('.story-gallery-viewport').forEach((viewport) => {
+        viewport.classList.remove('is-cinematic')
       })
-    })
+    }
+  })
 
+  if (window.matchMedia('(min-width: 901px)').matches) {
     gsap.timeline({
       scrollTrigger: {
         trigger: '.hero',
@@ -425,6 +478,7 @@ motion.add('(prefers-reduced-motion: no-preference)', () => {
   })
 
   return () => {
+    galleryBreakpoints.revert()
     lenis.off('scroll', updateScroll)
     gsap.ticker.remove(advanceScroll)
     lenis.destroy()
