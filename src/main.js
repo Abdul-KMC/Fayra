@@ -499,7 +499,7 @@ motion.add('(prefers-reduced-motion: no-preference)', () => {
     })
     const updateGallery = (fadeCopy = false) => {
       const stageHeight = galleryViewport.clientHeight
-      const slot = stageHeight * 0.36
+      const slot = stageHeight * (desktop ? 0.6 : 0.36)
       const xOffset = galleryViewport.clientWidth * (desktop ? 0.075 : 0.035)
 
       if (desktop && fadeCopy) {
@@ -510,18 +510,12 @@ motion.add('(prefers-reduced-motion: no-preference)', () => {
       galleryCards.forEach((card, index) => {
         const position = index - galleryProgress.value
         const distance = Math.abs(position)
-        const rotationY = distance <= 0.48
-          ? 0
-          : distance <= 0.7
-            ? ((distance - 0.48) / 0.22) * 60
-            : distance <= 1
-              ? 60 + ((distance - 0.7) / 0.3) * 120
-              : 180
+        const rotationY = gsap.utils.clamp(-15, 15, -position * 15)
         const opacity = 1 - gsap.utils.clamp(0, 1, (distance - 1.08) / 0.52)
         gsap.set(card, {
           x: -Math.sin(position * Math.PI / 2) * xOffset,
           y: gsap.utils.clamp(-stageHeight * 0.42, stageHeight * 0.42, position * slot),
-          rotationY: Math.min(rotationY, 180),
+          rotationY: Math.min(rotationY, 30),
           rotationZ: -position * 2.2,
           scale: 1 - Math.min(distance, 1) * 0.025,
           autoAlpha: opacity,
