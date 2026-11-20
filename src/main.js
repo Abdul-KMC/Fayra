@@ -473,7 +473,7 @@ motion.add('(prefers-reduced-motion: no-preference)', () => {
       scrollTrigger: { trigger: '.hero', start: 'top top', end: 'bottom top', scrub: true },
     })
   })
-  gsap.utils.toArray('.story__intro, .story__body, .section-heading, .menu-toolbar, .reservation > *:not(.reservation__ornament)').forEach((element) => {
+  gsap.utils.toArray('.section-heading, .menu-toolbar, .reservation > *:not(.reservation__ornament)').forEach((element) => {
     gsap.from(element, {
       y: 30,
       opacity: 0,
@@ -497,24 +497,19 @@ motion.add('(prefers-reduced-motion: no-preference)', () => {
     document.querySelectorAll('.story-gallery-viewport').forEach((viewport) => {
       viewport.classList.add('is-cinematic')
     })
-    const updateGallery = (fadeCopy = false) => {
+    const updateGallery = () => {
       const stageHeight = galleryViewport.clientHeight
-      const slot = stageHeight * (desktop ? 0.6 : 0.36)
+      const slot = stageHeight * (desktop ? 0.82 : 0.36)
       const xOffset = galleryViewport.clientWidth * (desktop ? 0.075 : 0.035)
-
-      if (desktop && fadeCopy) {
-        const copyOpacity = 1 - gsap.utils.clamp(0, 1, Math.abs(galleryProgress.value - 1) / 0.12)
-        gsap.set('.story__intro, .story__body', { autoAlpha: copyOpacity })
-      }
 
       galleryCards.forEach((card, index) => {
         const position = index - galleryProgress.value
         const distance = Math.abs(position)
         const rotationY = gsap.utils.clamp(-15, 15, -position * 15)
-        const opacity = 1 - gsap.utils.clamp(0, 1, (distance - 1.08) / 0.52)
+        const opacity = 1 - gsap.utils.clamp(0, 1, (distance - 0.72) / 0.28)
         gsap.set(card, {
           x: -Math.sin(position * Math.PI / 2) * xOffset,
-          y: gsap.utils.clamp(-stageHeight * 0.42, stageHeight * 0.42, position * slot),
+          y: position * slot,
           rotationY: Math.min(rotationY, 30),
           rotationZ: -position * 2.2,
           scale: 1 - Math.min(distance, 1) * 0.025,
@@ -530,7 +525,7 @@ motion.add('(prefers-reduced-motion: no-preference)', () => {
     const galleryTween = gsap.to(galleryProgress, {
       value: endProgress,
       ease: 'none',
-      onUpdate: () => updateGallery(true),
+      onUpdate: updateGallery,
       scrollTrigger: {
         trigger: galleryViewport,
         start: 'top 10%',
@@ -540,12 +535,19 @@ motion.add('(prefers-reduced-motion: no-preference)', () => {
         pinSpacing: true,
         anticipatePin: 1,
         invalidateOnRefresh: true,
+        onEnter: () => {
+          if (desktop) gsap.set('.story__intro, .story__body', { autoAlpha: 0 })
+        },
+        onLeaveBack: () => {
+          if (desktop) gsap.set('.story__intro, .story__body', { clearProps: 'opacity,visibility' })
+        },
       },
     })
 
     return () => {
       galleryTween.scrollTrigger?.kill()
       galleryTween.kill()
+      gsap.set('.story__intro, .story__body', { clearProps: 'opacity,visibility' })
       document.querySelectorAll('.story-gallery-viewport').forEach((viewport) => {
         viewport.classList.remove('is-cinematic')
       })
@@ -572,6 +574,8 @@ motion.add('(prefers-reduced-motion: no-preference)', () => {
     ease: 'none',
     scrollTrigger: { trigger: '.story', start: 'top 90%', end: 'top 30%', scrub: 1 },
   })
+
+  ScrollTrigger.refresh()
 
   return () => {
     galleryBreakpoints.revert()
